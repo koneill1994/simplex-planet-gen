@@ -89,7 +89,7 @@ ideal_framerate=1000/60
 wait_time=0
 
 rot_counter=0
-rotation = .2
+rotation = 2
 
 while 1:
   #main loop
