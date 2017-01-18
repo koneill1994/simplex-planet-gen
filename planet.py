@@ -27,6 +27,9 @@ screen = pygame.display.set_mode(size)
 mask = pygame.image.load("mask.png")
 maskrect=mask.get_rect()
 
+maps=[]
+
+
 #ball = pygame.image.load("ball.gif")
 #ballrect = ball.get_rect()
 
@@ -67,6 +70,10 @@ def PlanetColor(height,coords):
   return color
 
 def GradientColor(height):
+  '''
+  if height > 1.0:
+    print "warning: height of ", height, "Greater than 1"
+    '''
   return (int(256*height),int(256*height),int(256*height),256)
 
 def PerlinNoise(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2, lacunarity=3):
@@ -78,6 +85,17 @@ def PerlinNoise(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2,
       #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
       #print snoise2(x+xoff,y+yoff,1, 0.6,5,width)
   return im.convert("RGBA").tobytes("raw", "RGBA")
+  
+def PerlinNoise_Raw(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2, lacunarity=3):
+  im = Image.new( 'RGBA', (width*3,height), "black") # create a new black image
+  pix = im.load()
+  for x in range(width*3):
+    for y in range(height):
+      pix[x, y] = GradientColor(snoise2((x+xoff)*scale,(y+yoff)*scale,octaves, persistence, lacunarity,width*scale)/2+1)
+      #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
+      #print snoise2(x+xoff,y+yoff,1, 0.6,5,width)
+  return im.convert("RGBA").tobytes("raw", "RGBA")
+  
 
 # TESTING
 def TestGradient(width, height, xoff, yoff):
@@ -93,24 +111,16 @@ def TestGradient(width, height, xoff, yoff):
   return im.convert("RGBA").tobytes("raw", "RGBA")
 
 
+def create_map(surface):
+  rect=surface.get_rect()
+  rect=rect.move(-w,0)
+  maps.append([surface,rect])
 
 
+create_map(pygame.image.fromstring(PerlinNoise(w,h,0,0), (w*3,h), 'RGBA'))
+create_map(pygame.image.fromstring(PerlinNoise_Raw(w,h,0,0), (w*3,h), 'RGBA'))
+create_map(pygame.image.fromstring(TestGradient(w,h,0,0),(w*3,h), 'RGBA'))
 
-
-
-
-
-
-
-
-
-
-
-
-#planet = pygame.image.fromstring(PerlinNoise(w,h,0,0), (w*3,h), 'RGBA')
-planet = pygame.image.fromstring(TestGradient(w,h,0,0),(w*3,h), 'RGBA')
-planetrect = planet.get_rect()
-planetrect=planetrect.move(-w,0)
 
 ticks_start=0
 ideal_framerate=1000/60
@@ -119,27 +129,34 @@ wait_time=0
 rot_counter=0
 rotation = .1
 
+map_counter = 0
+
 while 1:
   #main loop
 
   rot_counter+= rotation
   
-  if rot_counter==w:
+  if rot_counter>=w:
     rot_counter=0
-    planetrect=planetrect.move(-w,0)
+    for m in maps:
+      m[1]=m[1].move(-w,0)
   else:
     if rot_counter%1<rotation:
-      planetrect=planetrect.move(1,0)
+      for m in maps:
+        m[1]=m[1].move(1,0)
+  # 
+
 
   fill = black
   keys = pygame.key.get_pressed()
   for event in pygame.event.get():
     if event.type == pygame.QUIT: sys.exit()
     if keys[pygame.K_ESCAPE]: sys.exit()
+    if keys[pygame.K_SPACE]: map_counter=(map_counter+1)%len(maps)
 
   screen.fill(fill)
 
-  screen.blit(planet, planetrect)
+  screen.blit(maps[map_counter][0],maps[map_counter][1])
   screen.blit(mask,maskrect)
   pygame.display.flip()
 
