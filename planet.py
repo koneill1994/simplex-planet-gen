@@ -89,7 +89,7 @@ ideal_framerate=1000/60
 wait_time=0
 
 rot_counter=0
-rotation = 1
+rotation = .2
 
 while 1:
   #main loop
@@ -100,8 +100,8 @@ while 1:
     rot_counter=0
     planetrect=planetrect.move(-w,0)
   else:
-    planetrect=planetrect.move(rotation,0)
-
+    if rot_counter%1<rotation:
+      planetrect=planetrect.move(1,0)
 
   fill = black
   keys = pygame.key.get_pressed()
