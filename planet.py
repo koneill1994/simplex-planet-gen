@@ -116,21 +116,23 @@ def GradientColor(height):
 
 def PerlinNoise(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2, lacunarity=3):
   start_time = time.clock()
-  im = Image.new( 'RGBA', (width*3,height), "black") # create a new black image
+  im = Image.new( 'RGBA', (width*2,height), "black") # create a new black image
   pix = im.load()
-  for x in range(width*3):
+  for x in range(width*2):
     for y in range(height):
       pix[x, y] = PlanetColor(snoise2((x+xoff)*scale,(y+yoff)*scale,octaves, persistence, lacunarity,width*scale),(x,y))
       #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
       #print snoise2(x+xoff,y+yoff,1, 0.6,5,width)
   print "Terrain created,", time.clock() - start_time, "SECONDS"
   return im.convert("RGBA").tobytes("raw", "RGBA")
-  
+
+# vv ^^ try to combine these, save .85 seconds (approx)
+
 def PerlinNoise_Raw(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2, lacunarity=3):
   start_time = time.clock()
-  im = Image.new( 'RGBA', (width*3,height), "black") # create a new black image
+  im = Image.new( 'RGBA', (width*2,height), "black") # create a new black image
   pix = im.load()
-  for x in range(width*3):
+  for x in range(width*2):
     for y in range(height):
       pix[x, y] = GradientColor(snoise2((x+xoff)*scale,(y+yoff)*scale,octaves, persistence, lacunarity,width*scale)/2+1/2)
       #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
@@ -141,9 +143,9 @@ def PerlinNoise_Raw(width, height, xoff, yoff, scale=.01, octaves=2, persistence
 
 # TESTING
 def TestGradient(width, height, xoff, yoff):
-  im = Image.new( 'RGBA', (width*3,height), "black") # create a new black image
+  im = Image.new( 'RGBA', (width*2,height), "black") # create a new black image
   pix = im.load()
-  for x in range(width*3):
+  for x in range(width*2):
     for y in range(height):
       col=black
       if Ice(.5,y/h):
@@ -155,15 +157,17 @@ def TestGradient(width, height, xoff, yoff):
 
 def create_map(surface):
   rect=surface.get_rect()
+  if(width>height):
+    rect=rect.move(int(width/2-height/2),0)
   rect=rect.move(-w,0)
   maps.append([surface,rect])
 
 
 
 # this will create the different maps for the planet
-create_map(pygame.image.fromstring(PerlinNoise(w,h,0,0), (w*3,h), 'RGBA'))
-create_map(pygame.image.fromstring(PerlinNoise_Raw(w,h,0,0), (w*3,h), 'RGBA'))
-create_map(pygame.image.fromstring(TestGradient(w,h,0,0),(w*3,h), 'RGBA'))
+create_map(pygame.image.fromstring(PerlinNoise(w,h,0,0), (w*2,h), 'RGBA'))
+create_map(pygame.image.fromstring(PerlinNoise_Raw(w,h,0,0), (w*2,h), 'RGBA'))
+create_map(pygame.image.fromstring(TestGradient(w,h,0,0),(w*2,h), 'RGBA'))
 
 
 # this creates the black mask that goes over & makes it a circle
