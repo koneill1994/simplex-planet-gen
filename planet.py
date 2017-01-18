@@ -12,7 +12,7 @@ if not pygame.mixer: print 'Warning, sound disabled'
 
 pygame.init()
 
-size = width, height = 1200, 800
+size = width, height = 640, 400
 
 
 black = 0,0,0
@@ -24,6 +24,8 @@ yellow = 255,255,0
 
 screen = pygame.display.set_mode(size)
 
+mask = pygame.image.load("mask.png")
+maskrect=mask.get_rect()
 
 #ball = pygame.image.load("ball.gif")
 #ballrect = ball.get_rect()
@@ -36,20 +38,28 @@ screen = pygame.display.set_mode(size)
 
 # functions go here
 
-planetsize = w, h = 128, 128
+#planetsize = w, h = 128, 128
+planetsize = w, h = 400, 400
+
+
 
 def PlanetColor(height):
-  if height<.2:
-    return (0,0,256,256)
+  #assuming height is between -1 and 1
+  height=(height+1)/2
+  if height<.5:
+    return (0,0,int(256*height),256)
   else:
-    return (0,256,0,256)
+    return (0,int(256*height),0,256)
 
-def PerlinNoise(width, height, xoff, yoff):
-  im = Image.new( 'RGBA', (width,height), "black") # create a new black image
+def GradientColor(height):
+  return (int(256*height),int(256*height),int(256*height),256)
+
+def PerlinNoise(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2, lacunarity=3):
+  im = Image.new( 'RGBA', (width*3,height), "black") # create a new black image
   pix = im.load()
-  for x in range(width):
+  for x in range(width*3):
     for y in range(height):
-      pix[x, y] = PlanetColor(snoise2(x+xoff,y+yoff,1, 0.6,5,width))
+      pix[x, y] = PlanetColor(snoise2((x+xoff)*scale,(y+yoff)*scale,octaves, persistence, lacunarity,width*scale))
       #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
       #print snoise2(x+xoff,y+yoff,1, 0.6,5,width)
   return im.convert("RGBA").tobytes("raw", "RGBA")
@@ -70,15 +80,28 @@ def PerlinNoise(width, height, xoff, yoff):
 
 
 
-planet = pygame.image.fromstring(PerlinNoise(w,h,0,0), planetsize, 'RGBA')
+planet = pygame.image.fromstring(PerlinNoise(w,h,0,0), (w*3,h), 'RGBA')
 planetrect = planet.get_rect()
+planetrect=planetrect.move(-w,0)
 
 ticks_start=0
 ideal_framerate=1000/60
 wait_time=0
 
+rot_counter=0
+rotation = 1
+
 while 1:
   #main loop
+
+  rot_counter+= rotation
+  
+  if rot_counter==w:
+    rot_counter=0
+    planetrect=planetrect.move(-w,0)
+  else:
+    planetrect=planetrect.move(rotation,0)
+
 
   fill = black
   keys = pygame.key.get_pressed()
@@ -89,6 +112,7 @@ while 1:
   screen.fill(fill)
 
   screen.blit(planet, planetrect)
+  screen.blit(mask,maskrect)
   pygame.display.flip()
 
 
