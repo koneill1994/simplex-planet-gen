@@ -1,0 +1,106 @@
+Help on package noise:
+
+NNAAMMEE
+    noise - Noise functions for procedural generation of content
+
+FFIILLEE
+    /home/kevin/.local/lib/python2.7/site-packages/noise/__init__.py
+
+DDEESSCCRRIIPPTTIIOONN
+    Contains native code implementations of Perlin improved noise (with
+    fBm capabilities) and Perlin simplex noise. Also contains a fast
+    "fake noise" implementation in GLSL for execution in shaders.
+    
+    Copyright (c) 2008, Casey Duncan (casey dot duncan at gmail dot com)
+
+PPAACCKKAAGGEE  CCOONNTTEENNTTSS
+    _perlin
+    _simplex
+    perlin
+    setup
+    shader
+    shader_noise
+    test
+
+FFUUNNCCTTIIOONNSS
+    ppnnooiissee11 = noise1(...)
+        noise1(x, octaves=1, persistence=0.5, lacunarity=2.0, repeat=1024, base=0.0)
+        
+        1 dimensional perlin improved noise function (see noise3 for more info)
+    
+    ppnnooiissee22 = noise2(...)
+        noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
+        
+        2 dimensional perlin improved noise function (see noise3 for more info)
+    
+    ppnnooiissee33 = noise3(...)
+        noise3(x, y, z, octaves=1, persistence=0.5, lacunarity=2.0repeatx=1024, repeaty=1024, repeatz=1024, base=0.0)
+        
+        return perlin "improved" noise value for specified coordinate
+        
+        octaves -- specifies the number of passes for generating fBm noise,
+        defaults to 1 (simple noise).
+        
+        persistence -- specifies the amplitude of each successive octave relative
+        to the one below it. Defaults to 0.5 (each higher octave's amplitude
+        is halved). Note the amplitude of the first pass is always 1.0.
+        
+        lacunarity -- specifies the frequency of each successive octave relative
+        to the one below it, similar to persistence. Defaults to 2.0.
+        
+        repeatx, repeaty, repeatz -- specifies the interval along each axis when 
+        the noise values repeat. This can be used as the tile size for creating 
+        tileable textures
+        
+        base -- specifies a fixed offset for the input coordinates. Useful for
+        generating different noise textures with the same repeat interval
+    
+    ssnnooiissee22 = noise2(...)
+        noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=None, repeaty=None, base=0.0) return simplex noise value for specified 2D coordinate.
+        
+        octaves -- specifies the number of passes, defaults to 1 (simple noise).
+        
+        persistence -- specifies the amplitude of each successive octave relative
+        to the one below it. Defaults to 0.5 (each higher octave's amplitude
+        is halved). Note the amplitude of the first pass is always 1.0.
+        
+        lacunarity -- specifies the frequency of each successive octave relative
+        to the one below it, similar to persistence. Defaults to 2.0.
+        
+        repeatx, repeaty -- specifies the interval along each axis when 
+        the noise values repeat. This can be used as the tile size for creating 
+        tileable textures
+        
+        base -- specifies a fixed offset for the noise coordinates. Useful for
+        generating different noise textures with the same repeat interval
+    
+    ssnnooiissee33 = noise3(...)
+        noise3(x, y, z, octaves=1, persistence=0.5, lacunarity=2.0) return simplex noise value for specified 3D coordinate
+        
+        octaves -- specifies the number of passes, defaults to 1 (simple noise).
+        
+        persistence -- specifies the amplitude of each successive octave relative
+        to the one below it. Defaults to 0.5 (each higher octave's amplitude
+        is halved). Note the amplitude of the first pass is always 1.0.
+        
+        lacunarity -- specifies the frequency of each successive octave relative
+        to the one below it, similar to persistence. Defaults to 2.0.
+    
+    ssnnooiissee44 = noise4(...)
+        noise4(x, y, z, w, octaves=1, persistence=0.5, lacunarity=2.0) return simplex noise value for specified 4D coordinate
+        
+        octaves -- specifies the number of passes, defaults to 1 (simple noise).
+        
+        persistence -- specifies the amplitude of each successive octave relative
+        to the one below it. Defaults to 0.5 (each higher octave's amplitude
+        is halved). Note the amplitude of the first pass is always 1.0.
+        
+        lacunarity -- specifies the frequency of each successive octave relative
+        to the one below it, similar to persistence. Defaults to 2.0.
+
+DDAATTAA
+    ____vveerrssiioonn____ = '1.2.1'
+
+VVEERRSSIIOONN
+    1.2.1
+
