@@ -30,14 +30,6 @@ maskrect=mask.get_rect()
 maps=[]
 names=[]
 
-#ball = pygame.image.load("ball.gif")
-#ballrect = ball.get_rect()
-
-#planet = pygame.image.fromstring(string, size, format, Flipped=false)
-
-
-# string = im.convert("RGBA").tostring("raw", "RGBA")
-
 # to do clouds make sure to use 
 # convert_alpha(Surface) -> Surface
 
@@ -159,7 +151,8 @@ def TempList(width, height, xoff, yoff, scale=.012, octaves=2, persistence=.2, l
 
 
 
-# todo: remove alpha component, should speed up computation
+# remove alpha component, should speed up computation
+# it doesn't help more than marginally
 def TerrainFromList(hlist):
   start_time = time.clock()
   im = Image.new( 'RGBA', (len(hlist[0]),len(hlist)), "black") # create a new black image
