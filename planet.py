@@ -128,9 +128,9 @@ def GradientColor(height):
     '''
   return (int(256*height),int(256*height),int(256*height),256)
 
-def PerlinList(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2, lacunarity=3):
+def PerlinList(width, height, xoff, yoff, scale=.012, octaves=2, persistence=.2, lacunarity=4):
   start_time = time.clock()
-  hlist=x = [[0 for i in range(width*2)] for j in range(height)]
+  hlist = [[0 for i in range(width*2)] for j in range(height)]
   for x in range(width*2):
     for y in range(height):
       hlist[y][x] = snoise2((x+xoff)*scale,(y+yoff)*scale,octaves, persistence, lacunarity,width*scale)
@@ -138,6 +138,26 @@ def PerlinList(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2, 
   print "PerlinList created,", time.clock() - start_time, "SECONDS"
   return hlist
 
+
+def TempList(width, height, xoff, yoff, scale=.012, octaves=2, persistence=.2, lacunarity=4):
+  start_time = time.clock()
+  tlist= [[0 for i in range(width*2)] for j in range(height)]
+  for x in range(width*2):
+    for y in range(height):
+      lat=1.0-abs((1.0*y/height)-0.5)
+      tlist[y][x] = lat*snoise2((x+xoff)*scale,(y+yoff)*scale,octaves, persistence, lacunarity,width*scale)
+      print lat, tlist[y][x]
+      #tlist[y][x] = lat
+      #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
+  print "PerlinList created,", time.clock() - start_time, "SECONDS"
+  return tlist
+
+
+
+
+
+
+# todo: remove alpha component, should speed up computation
 def TerrainFromList(hlist):
   start_time = time.clock()
   im = Image.new( 'RGBA', (len(hlist[0]),len(hlist)), "black") # create a new black image
@@ -162,32 +182,6 @@ def GradientFromList(hlist):
 
 
 
-def PerlinNoise(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2, lacunarity=3):
-  start_time = time.clock()
-  im = Image.new( 'RGBA', (width*2,height), "black") # create a new black image
-  pix = im.load()
-  for x in range(width*2):
-    for y in range(height):
-      pix[x, y] = PlanetColor(snoise2((x+xoff)*scale,(y+yoff)*scale,octaves, persistence, lacunarity,width*scale),(x,y))
-      #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
-      #print snoise2(x+xoff,y+yoff,1, 0.6,5,width)
-  print "Terrain created,", time.clock() - start_time, "SECONDS"
-  return im.convert("RGBA").tobytes("raw", "RGBA")
-
-# vv ^^ obsolete
-#
-def PerlinNoise_Raw(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2, lacunarity=3):
-  start_time = time.clock()
-  im = Image.new( 'RGBA', (width*2,height), "black") # create a new black image
-  pix = im.load()
-  for x in range(width*2):
-    for y in range(height):
-      pix[x, y] = GradientColor(snoise2((x+xoff)*scale,(y+yoff)*scale,octaves, persistence, lacunarity,width*scale)/2+1/2)
-      #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
-      #print snoise2(x+xoff,y+yoff,1, 0.6,5,width)
-  print "Perlin created,", time.clock() - start_time, "SECONDS"
-  return im.convert("RGBA").tobytes("raw", "RGBA")
-  
 
 # TESTING
 def TestGradient(width, height, xoff, yoff):
@@ -232,15 +226,19 @@ def create_map(surface):
 print "Make HeightMap:"
 hlist=PerlinList(w,h,0,0) # make heightmap
 print "Make TemperatureMap:"
-tlist=PerlinList(w,h,0,20432) # make temperature map
+tlist=TempList(w,h,0,20432) # make temperature map
 
+# todo: trigonometic dropoff  for extreme latitudes
+#     i.e. generally colder at poles than equator
+# add in a sin function to simulate axial tilt.
 
-
+# todo: implement biomes
 
 
 # this will create the different maps for the planet
 create_map(pygame.image.fromstring(TerrainFromList(hlist), (w*2,h), 'RGBA'))
 create_map(pygame.image.fromstring(GradientFromList(hlist), (w*2,h), 'RGBA'))
+create_map(pygame.image.fromstring(GradientFromList(tlist), (w*2,h), 'RGBA'))
 #create_map(pygame.image.fromstring(str(bytearray([RGBA_to_int(GradientColor(i)) for i in list_2d_to_1d(hlist)])), (w*2,h), 'RGBA'))
 #   ^ get that right
 #   generate it as a bytestring, save on computational time
