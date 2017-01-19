@@ -46,8 +46,20 @@ maps=[]
 
 # functions go here
 
+
+
+# planetary parameters
+
 #planetsize = w, h = 128, 128
 planetsize = w, h = 400, 400
+water_cutoff = .5
+
+
+
+
+
+
+
 
 
 
@@ -85,10 +97,12 @@ def createdarkmask(width,height):
 #TESTING
 def Ice(height, y):
   # y normalized between 0 and 1
-  ice_cutoff = .05
+  y-=0.5 # make it so 0 is at the equator
+  if height<water_cutoff: height=water_cutoff # no underwater ice  
+  ice_cutoff = .2
   ice_prob=y*height
   # math.sin
-  if ice_prob > ice_cutoff:
+  if abs(ice_prob) > ice_cutoff:
     return True
   return False
 
@@ -97,12 +111,12 @@ def PlanetColor(height,coords):
   color = (0,0,0,0)
   #assuming height is between -1 and 1
   height=(height+1)/2
-  if height<.5:
+  if height< water_cutoff:
     color = (0,0,int(256*height),256)
   else:
     color = (0,int(256*height),0,256)
   
-  if Ice(height,coords[1]/h):
+  if Ice(height,float(coords[1])/h):
     color = (256,256,256,256)
   
   return color
@@ -113,6 +127,40 @@ def GradientColor(height):
     print "warning: height of ", height, "Greater than 1"
     '''
   return (int(256*height),int(256*height),int(256*height),256)
+
+def PerlinList(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2, lacunarity=3):
+  start_time = time.clock()
+  hlist=x = [[0 for i in range(width*2)] for j in range(height)]
+  for x in range(width*2):
+    for y in range(height):
+      hlist[y][x] = snoise2((x+xoff)*scale,(y+yoff)*scale,octaves, persistence, lacunarity,width*scale)
+      #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
+  print "PerlinList created,", time.clock() - start_time, "SECONDS"
+  return hlist
+
+def TerrainFromList(hlist):
+  start_time = time.clock()
+  im = Image.new( 'RGBA', (len(hlist[0]),len(hlist)), "black") # create a new black image
+  pix = im.load()
+  for x in range(len(hlist[0])):
+    for y in range(len(hlist)):
+      pix[x, y] = PlanetColor(hlist[y][x],(x,y))
+      #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
+  print "TerrainFromList created,", time.clock() - start_time, "SECONDS"
+  return im.convert("RGBA").tobytes("raw", "RGBA")
+
+def GradientFromList(hlist):
+  start_time = time.clock()
+  im = Image.new( 'RGBA', (len(hlist[0]),len(hlist)), "black") # create a new black image
+  pix = im.load()
+  for x in range(len(hlist[0])):
+    for y in range(len(hlist)):
+      pix[x, y] = GradientColor(hlist[y][x])
+      #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
+  print "TerrainFromList created,", time.clock() - start_time, "SECONDS"
+  return im.convert("RGBA").tobytes("raw", "RGBA")
+
+
 
 def PerlinNoise(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2, lacunarity=3):
   start_time = time.clock()
@@ -126,8 +174,8 @@ def PerlinNoise(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2,
   print "Terrain created,", time.clock() - start_time, "SECONDS"
   return im.convert("RGBA").tobytes("raw", "RGBA")
 
-# vv ^^ try to combine these, save .85 seconds (approx)
-
+# vv ^^ obsolete
+#
 def PerlinNoise_Raw(width, height, xoff, yoff, scale=.01, octaves=2, persistence=.2, lacunarity=3):
   start_time = time.clock()
   im = Image.new( 'RGBA', (width*2,height), "black") # create a new black image
@@ -154,6 +202,23 @@ def TestGradient(width, height, xoff, yoff):
       
   return im.convert("RGBA").tobytes("raw", "RGBA")
 
+## doesn't work
+def RGBA_to_int(col):
+  total=0
+  n=len(col)-1
+  while n>=0:
+    a=256*col[n]
+    b=16**(len(col)-n)
+    total+=int(a*b)
+    n-=1
+    print col, total
+  return total
+
+def list_2d_to_1d(l):
+  out=[]
+  for row in l:
+    out+=row
+  return out
 
 def create_map(surface):
   rect=surface.get_rect()
@@ -162,13 +227,22 @@ def create_map(surface):
   rect=rect.move(-w,0)
   maps.append([surface,rect])
 
+#create map 
+
+hlist=PerlinList(w,h,0,0) # make heightmap
+tlist=PerlinList(w,h,0,20432) # make temperature map
+
+
+
 
 
 # this will create the different maps for the planet
-create_map(pygame.image.fromstring(PerlinNoise(w,h,0,0), (w*2,h), 'RGBA'))
-create_map(pygame.image.fromstring(PerlinNoise_Raw(w,h,0,0), (w*2,h), 'RGBA'))
-create_map(pygame.image.fromstring(TestGradient(w,h,0,0),(w*2,h), 'RGBA'))
-
+create_map(pygame.image.fromstring(TerrainFromList(hlist), (w*2,h), 'RGBA'))
+create_map(pygame.image.fromstring(GradientFromList(hlist), (w*2,h), 'RGBA'))
+#create_map(pygame.image.fromstring(str(bytearray([RGBA_to_int(GradientColor(i)) for i in list_2d_to_1d(hlist)])), (w*2,h), 'RGBA'))
+#   ^ get that right
+#   generate it as a bytestring, save on computational time
+# doesnt work atm
 
 # this creates the black mask that goes over & makes it a circle
 mask = pygame.image.fromstring(createdarkmask(width,height),(width,height), 'RGBA').convert_alpha()
