@@ -28,7 +28,7 @@ mask = pygame.image.load("mask.png")
 maskrect=mask.get_rect()
 '''
 maps=[]
-
+names=[]
 
 #ball = pygame.image.load("ball.gif")
 #ballrect = ball.get_rect()
@@ -142,17 +142,19 @@ def PerlinList(width, height, xoff, yoff, scale=.012, octaves=2, persistence=.2,
 def TempList(width, height, xoff, yoff, scale=.012, octaves=2, persistence=.2, lacunarity=4):
   start_time = time.clock()
   tlist= [[0 for i in range(width*2)] for j in range(height)]
+  miny=0
   for x in range(width*2):
     for y in range(height):
       lat=1.0-abs((1.0*y/height)-0.5)
-      tlist[y][x] = lat*snoise2((x+xoff)*scale,(y+yoff)*scale,octaves, persistence, lacunarity,width*scale)
-      print lat, tlist[y][x]
+      tlist[y][x] = (lat**5)*(snoise2((x+xoff)*scale,(y+yoff)*scale,octaves, persistence, lacunarity,width*scale)+1)/2
+      if tlist[y][x]<miny:miny=tlist[y][x]
       #tlist[y][x] = lat
       #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
-  print "PerlinList created,", time.clock() - start_time, "SECONDS"
+  print "TempList created,", time.clock() - start_time, "SECONDS"
+  print "MINY",miny
   return tlist
 
-
+#  how is snoise2 returning negative values?  prolly clamped between -1 and 1
 
 
 
@@ -214,12 +216,21 @@ def list_2d_to_1d(l):
     out+=row
   return out
 
-def create_map(surface):
+def display_mapname(name):
+  if pygame.font:
+    font = pygame.font.Font(None, 24)
+    
+    text = font.render(name, 1, (255,255,0))
+    textpos = text.get_rect(right=width-20)
+    screen.blit(text, textpos)
+
+def create_map(surface,name):
   rect=surface.get_rect()
   if(width>height):
     rect=rect.move(int(width/2-height/2),0)
   rect=rect.move(-w,0)
   maps.append([surface,rect])
+  names.append(name)
 
 #create map 
 
@@ -236,9 +247,9 @@ tlist=TempList(w,h,0,20432) # make temperature map
 
 
 # this will create the different maps for the planet
-create_map(pygame.image.fromstring(TerrainFromList(hlist), (w*2,h), 'RGBA'))
-create_map(pygame.image.fromstring(GradientFromList(hlist), (w*2,h), 'RGBA'))
-create_map(pygame.image.fromstring(GradientFromList(tlist), (w*2,h), 'RGBA'))
+create_map(pygame.image.fromstring(TerrainFromList(hlist), (w*2,h), 'RGBA'),"Terrain")
+create_map(pygame.image.fromstring(GradientFromList(hlist), (w*2,h), 'RGBA'),"Perlin")
+create_map(pygame.image.fromstring(GradientFromList(tlist), (w*2,h), 'RGBA'),"Temperature")
 #create_map(pygame.image.fromstring(str(bytearray([RGBA_to_int(GradientColor(i)) for i in list_2d_to_1d(hlist)])), (w*2,h), 'RGBA'))
 #   ^ get that right
 #   generate it as a bytestring, save on computational time
@@ -299,11 +310,14 @@ while 1:
     if event.type == pygame.QUIT: sys.exit()
     if keys[pygame.K_ESCAPE]: sys.exit()
     if keys[pygame.K_SPACE]: map_counter=(map_counter+1)%len(maps)
+    if keys[pygame.K_LEFT]: map_counter=(map_counter-1)%len(maps)
+    if keys[pygame.K_RIGHT]: map_counter=(map_counter+1)%len(maps)
 
   screen.fill(fill)
 
   screen.blit(maps[map_counter][0],maps[map_counter][1])
   screen.blit(mask,maskrect)
+  display_mapname(names[map_counter])
   pygame.display.flip()
 
 
