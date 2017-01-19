@@ -112,7 +112,7 @@ def PlanetColor(height,coords):
   #assuming height is between -1 and 1
   height=(height+1)/2
   if height< water_cutoff:
-    color = (0,0,int(256*height),256)
+    color = (0,0,int(256*(height/2+water_cutoff)),256)
   else:
     color = (0,int(256*height),0,256)
   
@@ -157,7 +157,7 @@ def GradientFromList(hlist):
     for y in range(len(hlist)):
       pix[x, y] = GradientColor(hlist[y][x])
       #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
-  print "TerrainFromList created,", time.clock() - start_time, "SECONDS"
+  print "GradientFromList created,", time.clock() - start_time, "SECONDS"
   return im.convert("RGBA").tobytes("raw", "RGBA")
 
 
@@ -229,7 +229,9 @@ def create_map(surface):
 
 #create map 
 
+print "Make HeightMap:"
 hlist=PerlinList(w,h,0,0) # make heightmap
+print "Make TemperatureMap:"
 tlist=PerlinList(w,h,0,20432) # make temperature map
 
 
