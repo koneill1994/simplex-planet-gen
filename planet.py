@@ -218,7 +218,7 @@ def display_mapname(name):
     font = pygame.font.Font(None, 24)
     
     text = font.render(name, 1, (255,255,0))
-    textpos = text.get_rect(right=width-20)
+    textpos = text.get_rect(right=width-20, top=20)
     screen.blit(text, textpos)
 
 def create_map(surface,name):
