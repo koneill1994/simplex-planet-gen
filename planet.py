@@ -90,12 +90,12 @@ def createdarkmask(width,height):
   return im.convert("RGBA").tobytes("raw", "RGBA")
 
 #TESTING
-def Ice(height, y):
+def Ice(height, x, y):
+  y_norm=float(y/h)-0.5 # make it so 0 is at the equator
   # y normalized between 0 and 1
-  y-=0.5 # make it so 0 is at the equator
   if height<water_cutoff: height=water_cutoff # no underwater ice  
   ice_cutoff = .2
-  ice_prob=y*height
+  ice_prob=(1.0-slist[y][x])*height*(1-tlist[y][x])
   # math.sin
   if abs(ice_prob) > ice_cutoff:
     return True
@@ -111,7 +111,7 @@ def PlanetColor(height,coords):
   else:
     color = (0,int(256*height),0,256)
   
-  if Ice(height,float(coords[1])/h):
+  if Ice(height,coords[0],coords[1]):
     color = (256,256,256,256)
   
   return color
@@ -161,7 +161,7 @@ def SunList(width, height, xoff, yoff, scale=.012, octaves=2, persistence=.2, la
   slist= [[0 for i in range(width*2)] for j in range(height)]
   miny=1
   maxy=0
-  amplitude=50.0
+  amplitude=20.0
   frequency=1.0/width
   for x in range(width*2):
     for y in range(height):
@@ -314,7 +314,7 @@ while 1:
   screen.fill(fill)
 
   screen.blit(maps[map_counter][0],maps[map_counter][1])
-  screen.blit(mask,maskrect)
+  #screen.blit(mask,maskrect)
   display_mapname(names[map_counter])
   pygame.display.flip()
 
