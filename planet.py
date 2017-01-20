@@ -134,16 +134,20 @@ def PerlinList(width, height, xoff, yoff, scale=.012, octaves=2, persistence=.2,
 def TempList(width, height, xoff, yoff, scale=.012, octaves=2, persistence=.2, lacunarity=4):
   start_time = time.clock()
   tlist= [[0 for i in range(width*2)] for j in range(height)]
-  miny=0
+  miny=1
+  maxy=0
+  print height
   for x in range(width*2):
     for y in range(height):
-      lat=1.0-abs((1.0*y/height)-0.5)
-      tlist[y][x] = (lat**5)*(snoise2((x+xoff)*scale,(y+yoff)*scale,octaves, persistence, lacunarity,width*scale)+1)/2
-      if tlist[y][x]<miny:miny=tlist[y][x]
-      #tlist[y][x] = lat
+      lat=2.0*abs((1.0*y/height)-0.5)
+      triglat=math.cos(math.asin(lat))
+      tlist[y][x] = triglat**2*(snoise2((x+xoff)*scale,(y+yoff)*scale,octaves, persistence, lacunarity,width*scale)+1)/2
+      #tlist[y][x] = triglat**5
+      if tlist[y][x] < miny: miny=tlist[y][x]
+      if tlist[y][x] > maxy: maxy=tlist[y][x]
       #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
   print "TempList created,", time.clock() - start_time, "SECONDS"
-  print "MINY",miny
+  print "Miny", miny, "Maxy",maxy
   return tlist
 
 #  how is snoise2 returning negative values?  prolly clamped between -1 and 1
@@ -243,21 +247,10 @@ tlist=TempList(w,h,0,20432) # make temperature map
 create_map(pygame.image.fromstring(TerrainFromList(hlist), (w*2,h), 'RGBA'),"Terrain")
 create_map(pygame.image.fromstring(GradientFromList(hlist), (w*2,h), 'RGBA'),"Perlin")
 create_map(pygame.image.fromstring(GradientFromList(tlist), (w*2,h), 'RGBA'),"Temperature")
-#create_map(pygame.image.fromstring(str(bytearray([RGBA_to_int(GradientColor(i)) for i in list_2d_to_1d(hlist)])), (w*2,h), 'RGBA'))
-#   ^ get that right
-#   generate it as a bytestring, save on computational time
-# doesnt work atm
 
 # this creates the black mask that goes over & makes it a circle
 mask = pygame.image.fromstring(createdarkmask(width,height),(width,height), 'RGBA').convert_alpha()
 maskrect=mask.get_rect()
-
-# transparency mask dummied out code
-#https://stackoverflow.com/questions/16880128/pygame-is-there-any-way-to-only-blit-or-update-in-a-mask
-'''
-mask_new = pygame.image.fromstring(createmask(width,height),(width,height), 'RGBA').convert_alpha()
-mask_new_rect=mask_new.get_rect()
-'''
 
 
 ticks_start=0
@@ -268,17 +261,6 @@ rot_counter=0
 rotation = .1
 map_counter = 0
 
-# transparency mask dummied out code
-'''
-print "begin test"
-masked = maps[map_counter][0].copy().convert_alpha()
-masked.blit(mask, (0, 0), None, pygame.BLEND_RGBA_MULT)
-screen.blit(masked, (0, 0))
-
-#screen.blit(mask_new,mask_new_rect)
-#dummied out code to check that the mask created correctly
-
-'''
 
 print "Running"
 while 1:
@@ -287,9 +269,9 @@ while 1:
   rot_counter+= rotation
   
   if rot_counter>=w:
-    rot_counter=0
     for m in maps:
-      m[1]=m[1].move(-w,0)
+      m[1]=m[1].move(-rot_counter,0)
+    rot_counter=0
   else:
     if rot_counter%1<rotation:
       for m in maps:
