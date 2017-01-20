@@ -43,7 +43,7 @@ names=[]
 # planetary parameters
 
 #planetsize = w, h = 128, 128
-planetsize = w, h = 400, 400
+planetsize = w, h = 800, 400
 water_cutoff = .5
 
 
@@ -53,7 +53,10 @@ water_cutoff = .5
 
 
 
-
+def clamp(maxn,minn,i):
+  if i>maxn: return maxn
+  if i<minn: return minn
+  return i
 
 def sqrdistance(a,b):
   return (a[0]-b[0])**2 + (a[1]-b[1])**2
@@ -136,7 +139,6 @@ def TempList(width, height, xoff, yoff, scale=.012, octaves=2, persistence=.2, l
   tlist= [[0 for i in range(width*2)] for j in range(height)]
   miny=1
   maxy=0
-  print height
   for x in range(width*2):
     for y in range(height):
       lat=2.0*abs((1.0*y/height)-0.5)
@@ -147,11 +149,31 @@ def TempList(width, height, xoff, yoff, scale=.012, octaves=2, persistence=.2, l
       if tlist[y][x] > maxy: maxy=tlist[y][x]
       #noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=0.0)
   print "TempList created,", time.clock() - start_time, "SECONDS"
-  print "Miny", miny, "Maxy",maxy
+  #print "Miny", miny, "Maxy",maxy
   return tlist
 
 #  how is snoise2 returning negative values?  prolly clamped between -1 and 1
 
+
+# todo: calculate amplitude for a given axial tilt
+def SunList(width, height, xoff, yoff, scale=.012, octaves=2, persistence=.2, lacunarity=4):
+  start_time = time.clock()
+  slist= [[0 for i in range(width*2)] for j in range(height)]
+  miny=1
+  maxy=0
+  amplitude=50.0
+  frequency=1.0/width
+  for x in range(width*2):
+    for y in range(height):
+      tiltoffset=amplitude*math.sin(2.0*math.pi*x*frequency)
+      lat=2.0*abs((1.0*(clamp(height,0,y+tiltoffset))/height)-0.5)
+      triglat=math.cos(math.asin(lat))
+      slist[y][x] = triglat
+      if slist[y][x] < miny: miny=tlist[y][x]
+      if slist[y][x] > maxy: maxy=tlist[y][x]
+  print "SunList created,", time.clock() - start_time, "SECONDS"
+  #print "Miny", miny, "Maxy",maxy
+  return slist
 
 
 
@@ -231,10 +253,9 @@ def create_map(surface,name):
 
 #create map 
 
-print "Make HeightMap:"
 hlist=PerlinList(w,h,0,0) # make heightmap
-print "Make TemperatureMap:"
 tlist=TempList(w,h,0,20432) # make temperature map
+slist=SunList(w,h,0,13212) # make sunlight map
 
 # todo: trigonometic dropoff  for extreme latitudes
 #     i.e. generally colder at poles than equator
@@ -247,6 +268,8 @@ tlist=TempList(w,h,0,20432) # make temperature map
 create_map(pygame.image.fromstring(TerrainFromList(hlist), (w*2,h), 'RGBA'),"Terrain")
 create_map(pygame.image.fromstring(GradientFromList(hlist), (w*2,h), 'RGBA'),"Perlin")
 create_map(pygame.image.fromstring(GradientFromList(tlist), (w*2,h), 'RGBA'),"Temperature")
+create_map(pygame.image.fromstring(GradientFromList(slist), (w*2,h), 'RGBA'),"Sun")
+
 
 # this creates the black mask that goes over & makes it a circle
 mask = pygame.image.fromstring(createdarkmask(width,height),(width,height), 'RGBA').convert_alpha()
@@ -258,7 +281,7 @@ ideal_framerate=1000/60
 wait_time=0
 
 rot_counter=0
-rotation = .1
+rotation = 1
 map_counter = 0
 
 
