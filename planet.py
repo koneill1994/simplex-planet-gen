@@ -169,8 +169,8 @@ def SunList(width, height, xoff, yoff, scale=.012, octaves=2, persistence=.2, la
       lat=2.0*abs((1.0*(clamp(height,0,y+tiltoffset))/height)-0.5)
       triglat=math.cos(math.asin(lat))
       slist[y][x] = triglat
-      if slist[y][x] < miny: miny=tlist[y][x]
-      if slist[y][x] > maxy: maxy=tlist[y][x]
+      if slist[y][x] < miny: miny=slist[y][x]
+      if slist[y][x] > maxy: maxy=slist[y][x]
   print "SunList created,", time.clock() - start_time, "SECONDS"
   #print "Miny", miny, "Maxy",maxy
   return slist
@@ -254,8 +254,8 @@ def create_map(surface,name):
 #create map 
 
 hlist=PerlinList(w,h,0,0) # make heightmap
-tlist=TempList(w,h,0,20432) # make temperature map
 slist=SunList(w,h,0,13212) # make sunlight map
+tlist=TempList(w,h,0,20432) # make temperature map
 
 # todo: trigonometic dropoff  for extreme latitudes
 #     i.e. generally colder at poles than equator
@@ -314,7 +314,7 @@ while 1:
   screen.fill(fill)
 
   screen.blit(maps[map_counter][0],maps[map_counter][1])
-  #screen.blit(mask,maskrect)
+  screen.blit(mask,maskrect)
   display_mapname(names[map_counter])
   pygame.display.flip()
 
